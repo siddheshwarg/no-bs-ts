@@ -15,7 +15,7 @@ class EventProcessor<T extends {}> {
   handleEvent<K extends keyof T>(eventName: K, data: T[K]): void {
     let allowEvent = true;
     for (const filter of this.filters[eventName] ?? []) {
-      if (!filter[data]) {
+      if (!filter(data)) {
         allowEvent = false;
         break;
       }
@@ -36,13 +36,13 @@ class EventProcessor<T extends {}> {
     eventName: K,
     filter: (data: T[K]) => boolean
   ): void {
-    this.filters[<string>eventName] ||= [];
-    this.filters[<string>eventName].push(filter);
+    this.filters[<keyof T>eventName] ||= [];
+    this.filters[<keyof T>eventName].push(filter as FilterFunction<T>);
   }
 
   addMap<K extends keyof T>(eventName: K, map: (data: T[K]) => T[K]): void {
-    this.maps[<string>eventName] ||= [];
-    this.maps[<string>eventName].push(map);
+    this.maps[<keyof T>eventName] ||= [];
+    this.maps[<keyof T>eventName].push(map as unknown as MapFunction<T>);
   }
 
   getProcessedEvents() {

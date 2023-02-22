@@ -21,8 +21,10 @@ class EventProcessor<T extends {}> {
     const capitalize = (s: string) =>
       `${s.charAt(0).toUpperCase()}${s.slice(1)}`;
     for (const handler of this.handlers) {
-      const filterFunc = handler[`on${capitalize(eventName)}`];
-      if (filterFunc && !filterFunc[data]) {
+      const filterFunc = handler[
+        `filter${capitalize(eventName as string)}` as keyof Handler<T>
+      ] as unknown as ((value: T[K]) => boolean) | undefined;
+      if (filterFunc && !filterFunc(data)) {
         allowEvent = false;
         break;
       }
@@ -30,7 +32,9 @@ class EventProcessor<T extends {}> {
     if (allowEvent) {
       let mappedData = { ...data };
       for (const handler of this.handlers) {
-        const mapFunc = handler[`map${capitalize(eventName)}`];
+        const mapFunc = handler[
+          `map${capitalize(eventName as string)}` as keyof Handler<T>
+        ] as unknown as ((value: T[K]) => T[K]) | undefined;
         if (mapFunc) {
           mappedData = <T[K]>mapFunc(mappedData);
         }
